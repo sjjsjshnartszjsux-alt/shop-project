@@ -1,6 +1,0 @@
-.venv/
-__pycache__/
-.idea/
-*.csv
-products.json
-data_new.json

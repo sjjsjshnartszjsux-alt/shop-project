@@ -204,7 +204,7 @@ def store_option_10():
 def store_option_11():
     print("برای خروج 0 وارد کنید.","\n :ما در سایت ",
           "https://jsonplaceholder.typicode.com/posts","\n "
-           ".اطلاعت شما را پیدا می کنیم")
+           "اطلاعت شما را پیدا می کنیم.")
     uses_new = input("کاربر شماره چند هستید: ").strip()
     if uses_new == "0":
         return
