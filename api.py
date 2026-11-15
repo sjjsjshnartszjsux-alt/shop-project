@@ -100,5 +100,5 @@ class Ticket:
     def __init__(self,price):
         self.price = price
     def can_buy(self,money_user,quantity):
-        total = self.price * quantity
-        return money_user >= total
+        total = int(self.price) * int(quantity)
+        return int(money_user) >= total

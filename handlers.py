@@ -116,12 +116,15 @@ def store_option_6():
                 print(text_num,"\n")
                 return
             pol = input("پول شما چقدر است: ").strip()
-            bool_3, text_num_2 = d.can_afford(pol)
-            if not text_num_2 == "":
-                print(text_num_2, "\n")
+            bool_3, pol_2 = d.can_afford(pol)
+            if not pol_2 == "":
+                print(pol_2, "\n")
                 return
-            ti = Ticket(text_num_2)
-            bool_4 = ti.can_buy(text_num_2,text_num)
+            ti = Ticket(data["price"])
+            if not pol.isdigit():
+                print("فقط برای پول عدد وارد کنید.")
+                return
+            bool_4 = ti.can_buy(pol,quantity)
             if not bool_4:
                 print(bool_4, "پول شما برای خرید این تعداد کافی نیست.")
                 return
