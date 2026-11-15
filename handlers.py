@@ -26,7 +26,7 @@ def store_option_1(data):
         stock_commodity = input("موجودی کالا: ").strip()
         bool_3, stock_commodity_end = check_stock(stock_commodity)
         if not bool_3 == True:
-            print(stock_commodity)
+            print(stock_commodity_end)
             store_option_1(load_products())
             return
         data_1, str_1 = add_product(data,name_end,price,stock_commodity_end)
@@ -71,6 +71,8 @@ def store_option_4():
         return
     for ro, data in load_products().items():
         dic = data
+        if int(ro) == int(identifier_end):
+            break
     quantity = input("تعداد الان کالا: ").strip()
     for a,row in load_products().items():
         if str(row["stock"]) == quantity:
@@ -85,7 +87,7 @@ def store_option_4():
                 return
             save_products(data_stock)
             print("موجودی این کالا ذخیره شد." ,"\n")
-    if not str(dic["stoke"]) == str(quantity):
+    if not str(dic.get("stock")) == str(quantity):
         print("تعداد الان کالا صحیح نیست.","\n")
         return
 def store_option_6():
@@ -135,9 +137,12 @@ def store_option_6():
                 save_products(new_data)
                 print("\n")
                 return
-    if not str(new_name) in lis.keys():
-        print("پیدا نشد.","\n")
-        return
+    for row in lis:
+        if str(new_name) == row["name"]:
+            pass
+        else:
+            print("پیدا نشد.", "\n")
+            return
 def store_option_7():
     print("برای بازگشت 4 وارد کنید.")
     name = input("نام کالا: ").strip()
@@ -157,7 +162,12 @@ def store_option_7():
                 for row in memory:
                     if row["name"] != name_new:
                         wri.writerow(row)
-                print(f" ردیف با نام {name_new} حذف شد. ")
+                with open("store.csv", "r", newline="", encoding="utf-8-sig") as file:
+                    memory_2 = list(csv.DictReader(f))
+                if not name_new in memory_2:
+                    print(f" ردیف با نام {name_new} حذف شد. ")
+                else:
+                    print("حذف نشد.")
     except FileNotFoundError:
         print("هنوز کالای خرید نکردید.")
     except KeyError as e:
@@ -191,12 +201,12 @@ def store_option_10():
     if not bool_2:
         print(new_name_csv)
         return
+    bool_3, json_pc_2 = find_product(new_name_csv)
     for key,json_pc_1 in data_json.items():
         if json_pc_1.get("name") == new_name_csv:
             print(f" سبد خرید: {json_pc_1} ","\n")
         else:
             print("پیدا نشد.")
-        bool_3, json_pc_2 = find_product(new_name_csv)
         if not bool_3:
             print(json_pc_2,"\n")
         else:
