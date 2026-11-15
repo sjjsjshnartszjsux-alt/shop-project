@@ -3,7 +3,7 @@ from validators import check_price,check_identifier,check_stock,check_name
 from storage import load_products,save_products,save_store_csv
 from logic import add_product,delete_product,json_stock,find_product
 from models import Product
-from api import Internet
+from api import Internet,Ticket
 import csv
 
 def store_option_1(data):
@@ -119,6 +119,11 @@ def store_option_6():
             bool_3, text_num_2 = d.can_afford(pol)
             if not text_num_2 == "":
                 print(text_num_2, "\n")
+                return
+            ti = Ticket(text_num_2)
+            bool_4 = ti.can_buy(text_num_2,text_num)
+            if not bool_4:
+                print(bool_4, "پول شما برای خرید این تعداد کافی نیست.")
                 return
             data_csv = d.to_data()
             new_json = data_csv.pop("stock")

@@ -1,5 +1,4 @@
 # models.py-----------
-
 class Product:
     def __init__(self,name:str,price:int,stock:int):
         self.stock = stock
@@ -19,12 +18,12 @@ class Product:
         self.stock -= int(quantity)
         return True, "فروخته شد."
 
-    def can_afford(self, quantity):
-        if not quantity.isdigit():
+    def can_afford(self, money_user):
+        if not money_user.isdigit():
             return False, "پول فقط باید عدد باشد."
-        if int(quantity) <= 0:
+        if int(money_user) <= 0:
             return False, "پول نباید 0 یا کمتر از آن باشد."
-        if self.price > int(quantity):
+        if self.price > int(money_user):
             return False, "پول شما برای خرید این کالا کافی نیست."
         return True, ""
 

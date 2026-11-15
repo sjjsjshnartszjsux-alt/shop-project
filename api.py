@@ -95,3 +95,10 @@ class Internet:
                 return new_data, self.address, data
         except FileNotFoundError:
             return lis_csv, "[]", data_json
+
+class Ticket:
+    def __init__(self,price):
+        self.price = price
+    def can_buy(self,money_user,quantity):
+        total = self.price * quantity
+        return money_user >= total
