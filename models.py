@@ -26,7 +26,6 @@ class Product:
         if self.price > int(money_user):
             return False, "پول شما برای خرید این کالا کافی نیست."
         return True, ""
-
     def to_data(self):
         data = {"name":self.name, "price":self.price, "stock":self.stock}
         return data

@@ -6,7 +6,8 @@ from handlers import (store_option_1,store_option_2,store_option_3,
 def main():
     while True:
         options_store = input("1:افزودن کالا در انبار 2:نمایش_انبار  3:حذف شناسه_انبار، 4:تغییر موجودی کالا،\n"
-                              " 5:خروج 6:خرید 7: لغو خرید 8:حذف تمام کالا_انبار 9: نمایش خرید 10:جستجو 11:جستجو سایت, 12:ذخیره داده شما 13:نمایش" "\n").strip()
+                              " 5:خروج 6:خرید 7: لغو خرید 8:حذف تمام کالا_انبار 9: نمایش خرید"
+                              " 10:جستجو 11:جستجو سایت, 12:ذخیره داده شما 13:نمایش_سایت" "\n").strip()
         if options_store == "1":
             store_option_1(load_products())
         elif options_store == "2":
