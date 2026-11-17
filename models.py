@@ -18,14 +18,18 @@ class Product:
         self.stock -= int(quantity)
         return True, "فروخته شد."
 
-    def can_afford(self, money_user):
+    def can_afford(self, money_user,x):
         if not money_user.isdigit():
             return False, "پول فقط باید عدد باشد."
         if int(money_user) <= 0:
             return False, "پول نباید 0 یا کمتر از آن باشد."
         if self.price > int(money_user):
             return False, "پول شما برای خرید این کالا کافی نیست."
-        return True, ""
+        total = int(self.price) * int(x)
+        bool_1 = int(money_user) >= total
+        if not bool_1:
+            return bool_1, "پول شما برای خرید کافی نیست."
+        return bool_1, ""
     def to_data(self):
         data = {"name":self.name, "price":self.price, "stock":self.stock}
         return data

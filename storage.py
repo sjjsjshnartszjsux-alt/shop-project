@@ -1,5 +1,5 @@
 # storage.py----------------------
-import json, csv, os
+import json, csv
 
 def load_products(name_file = "products.json"):
     try:
@@ -15,11 +15,8 @@ def save_products(products,filename= "products.json"):
         json.dump(products,f,ensure_ascii=False,indent=2)
 
 def save_store_csv(data, filename="store.csv"):
-    file_is_new = not os.path.exists(filename) or os.path.getsize(filename) == 0
     with open(filename, "a", newline="", encoding="utf-8-sig") as file:
         wri = csv.DictWriter(file, fieldnames=["name","price","id","number"])
-        if file_is_new:
-            wri.writeheader()
         if isinstance(data,list):
             wri.writerows(data)
         else:

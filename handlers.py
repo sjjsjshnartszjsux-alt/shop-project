@@ -3,13 +3,13 @@ from validators import check_price,check_identifier,check_stock,check_name
 from storage import load_products,save_products,save_store_csv
 from logic import add_product,delete_product,json_stock,find_product
 from models import Product
-from api import Internet,Ticket
+from api import Internet
 import csv
 
 def store_option_1(data):
-    print("برای بازگشت 4 را وارد کنید.")
+    print("برای بازگشت 0 را وارد کنید.")
     name = input("نام کالا: ").strip()
-    if name == "4":
+    if name == "0":
         return
     else:
         bool_1, name_end = check_name(name)
@@ -60,7 +60,6 @@ def store_option_3():
         print("کالا در انبار با این شناسه حذف شد.", "\n")
         return
 def store_option_4():
-    dic = {}
     print("برای بازگشت 0 را وارد کنید.")
     identifier = input("شناسه کالا: ").strip()
     if identifier == "0":
@@ -69,10 +68,6 @@ def store_option_4():
     if not bool_1:
         print(identifier_end)
         return
-    for ro, data in load_products().items():
-        dic = data
-        if int(ro) == int(identifier_end):
-            break
     quantity = input("تعداد الان کالا: ").strip()
     for a,row in load_products().items():
         if str(row["stock"]) == quantity:
@@ -87,9 +82,9 @@ def store_option_4():
                 return
             save_products(data_stock)
             print("موجودی این کالا ذخیره شد." ,"\n")
-    if not str(dic.get("stock")) == str(quantity):
-        print("تعداد الان کالا صحیح نیست.","\n")
-        return
+            return
+    print("تعداد الان کالا صحیح نیست.","\n")
+    return
 def store_option_6():
     store_option_2()
     print("\n برای بازگشت 4 وارد کنید.")
@@ -113,17 +108,9 @@ def store_option_6():
                 print(text_num,"\n")
                 return
             pol = input("پول شما چقدر است: ").strip()
-            bool_3, pol_2 = d.can_afford(pol)
-            if not pol_2 == "":
+            bool_3, pol_2 = d.can_afford(pol,data["price"])
+            if not bool_3:
                 print(pol_2, "\n")
-                return
-            ti = Ticket(data["price"])
-            if not pol.isdigit():
-                print("فقط برای پول عدد وارد کنید.")
-                return
-            bool_4 = ti.can_buy(pol,quantity)
-            if not bool_4:
-                print(bool_4, "پول شما برای خرید این تعداد کافی نیست.")
                 return
             data_csv = d.to_data()
             new_json = data_csv.pop("stock")
@@ -164,11 +151,12 @@ def store_option_7():
                     if row["name"] != name_new:
                         wri.writerow(row)
                 with open("store.csv", "r", newline="", encoding="utf-8-sig") as file:
-                    memory_2 = list(csv.DictReader(file))
-                if not name_new in memory_2:
-                    print(f" ردیف با نام {name_new} حذف شد. ")
-                else:
-                    print("حذف نشد.")
+                    memory_2 = csv.DictReader(file)
+                for new in memory_2:
+                    if new["name"] == name_new:
+                        print("حذف نشد.")
+                        return
+                print(f" ردیف با نام {name_new} حذف شد. ")
     except FileNotFoundError:
         print("هنوز کالای خرید نکردید.")
     except KeyError as e:
@@ -195,7 +183,7 @@ def store_option_9():
 def store_option_10():
     data_json = load_products()
     print("برای خروج 0 را وارد کنید.")
-    name_csv = input("نام کالا خریداری شده: ").strip()
+    name_csv = input("نام کالا: ").strip()
     if name_csv == "0":
         return
     bool_2, new_name_csv = check_name(name_csv)
@@ -206,12 +194,11 @@ def store_option_10():
     for key,json_pc_1 in data_json.items():
         if json_pc_1.get("name") == new_name_csv:
             print(f" سبد خرید: {json_pc_1} ","\n")
-        else:
-            print("پیدا نشد.")
-        if not bool_3:
-            print(json_pc_2,"\n")
-        else:
-            print(f" لیست خریداری شده: {json_pc_2}", "\n")
+            return
+    if not bool_3:
+        print(json_pc_2,"\n")
+    else:
+        print(f" لیست خریداری شده: {json_pc_2}", "\n")
 def store_option_11():
     print("برای خروج 0 وارد کنید.","\n :ما در سایت ",
           "https://jsonplaceholder.typicode.com/posts","\n "
