@@ -92,7 +92,6 @@ def store_option_4():
         return
 def store_option_6():
     store_option_2()
-    lis = {}
     print("\n برای بازگشت 4 وارد کنید.")
     name = input("نام کالا: ").strip()
     if name == "4":
@@ -165,7 +164,7 @@ def store_option_7():
                     if row["name"] != name_new:
                         wri.writerow(row)
                 with open("store.csv", "r", newline="", encoding="utf-8-sig") as file:
-                    memory_2 = list(csv.DictReader(f))
+                    memory_2 = list(csv.DictReader(file))
                 if not name_new in memory_2:
                     print(f" ردیف با نام {name_new} حذف شد. ")
                 else:
