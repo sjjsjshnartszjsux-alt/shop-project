@@ -105,8 +105,6 @@ def store_option_6():
     if data_json == {}:
         print("سبد خرید خالی است.","\n")
         return
-    for ro, data_new in data_json.items():
-        lis = data_new
     for a,data in data_json.items():
         if data["name"] == new_name:
             d = Product(**data)
@@ -145,12 +143,8 @@ def store_option_6():
                 save_products(new_data)
                 print("\n")
                 return
-    for row in lis:
-        if str(new_name) == row["name"]:
-            pass
-        else:
-            print("پیدا نشد.", "\n")
-            return
+    print("پیدا نشد.", "\n")
+    return
 def store_option_7():
     print("برای بازگشت 4 وارد کنید.")
     name = input("نام کالا: ").strip()
