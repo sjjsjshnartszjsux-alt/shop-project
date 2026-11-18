@@ -67,11 +67,8 @@ class Internet:
             r.raise_for_status()
             data = r.json()
             address = r.url
-            file_is_new = not os.path.exists(file) or os.path.getsize(file) == 0
             with open(file, "a", newline="", encoding="utf-8-sig") as file:
                 wri = csv.DictWriter(file, fieldnames=["title","body","userId",'id',"address"])
-                if file_is_new:
-                    wri.writeheader()
                 data["address"] = address
                 wri.writerow(data)
                 return data, r.status_code
