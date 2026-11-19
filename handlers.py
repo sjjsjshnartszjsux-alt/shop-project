@@ -139,7 +139,6 @@ def store_option_7():
     bol_1,name_new = check_name(name)
     if not bol_1 == True:
         print(name_new,"\n")
-        store_option_7()
         return
     try:
         with open("store.csv", "r", newline="", encoding="utf-8-sig") as f:

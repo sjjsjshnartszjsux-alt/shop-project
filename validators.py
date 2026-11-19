@@ -7,8 +7,8 @@ def check_price(price):
         return False, "قیمت نباید با 0 شروع شود."
     if not price.isdigit():
         return False, "قیمت فقط باید عدد باشد."
-    if not len(price) > 2:
-        return False, "قیمت نباید کمتر از 2 رقم باشد."
+    if not len(price) > 3:
+        return False, "قیمت نباید کمتر از 3 رقم باشد."
     return True, int(price)
 
 def check_identifier(id_num):
