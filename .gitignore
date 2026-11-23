@@ -4,3 +4,7 @@ __pycache__/
 *.csv
 products.json
 data_new.json
+images/
+card.html
+pay.html
+num.*

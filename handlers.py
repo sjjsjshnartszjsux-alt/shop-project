@@ -1,10 +1,10 @@
 # handlers.py--------------------
-from validators import check_price,check_identifier,check_stock,check_name
+from validators import check_price,check_identifier,check_stock,check_name,address_new
 from storage import load_products,save_products,save_store_csv
 from logic import add_product,delete_product,json_stock,find_product
-from models import Product
-from api import Internet
-import csv
+from models import Product,Data
+from pathlib import Path
+import csv,webbrowser,requests,json
 
 def store_option_1(data):
     print("برای بازگشت 0 را وارد کنید.")
@@ -29,15 +29,39 @@ def store_option_1(data):
             print(stock_commodity_end)
             store_option_1(load_products())
             return
-        data_1, str_1 = add_product(data,name_end,price,stock_commodity_end)
-        if str_1 == "":
-            save_products(data_1)
-            print("در انبار ذخیره شد.","\n")
-            return
+        new = input("برای گذاشتن عکس برای کالا تایید کنید.").strip()
+        if new == "تایید" or new == "اره":
+            address = input("ادرس سایت عکس: ").strip()
+            ok_2,mass_2 = address_new(address)
+            if not ok_2:
+                print(mass_2)
+                return
+            d = Data(address)
+            ok, mass = d.review()
+            if not ok:
+                print(mass)
+                return
+            data_1, str_1 = add_product(data, name_end, price, stock_commodity_end, address)
+            if str_1 == "":
+                save_products(data_1)
+                print("در انبار ذخیره شد.","\n")
+                return
+            else:
+                print(str_1,"\n")
+                return
         else:
-            print(str_1,"\n")
-            return
-
+            num = input("بدون عکس ذخیره شود؟ (بله/خیر)").strip()
+            if num == "بله" or num == "اره":
+                data_1, str_1 = add_product(data, name_end, price, stock_commodity_end, "")
+                if str_1 == "":
+                    save_products(data_1)
+                    print("در انبار با اطلاعات ذخیره شد.","\n")
+                    return
+                else:
+                    print(str_1,"\n")
+                    return
+            else:
+                print("ذخیره نشد.")
 def store_option_2():
     data = load_products()
     if not data:
@@ -101,6 +125,7 @@ def store_option_6():
         return
     for a,data in data_json.items():
         if data["name"] == new_name:
+            new_dic = data.pop("address","")
             d = Product(**data)
             quantity = input("تعداد کالای که می خواهید: ").strip()
             bool_2, text_num = d.sell(quantity)
@@ -108,7 +133,7 @@ def store_option_6():
                 print(text_num,"\n")
                 return
             pol = input("پول شما چقدر است: ").strip()
-            bool_3, pol_2 = d.can_afford(pol,data["price"])
+            bool_3, pol_2 = d.can_afford(pol,quantity)
             if not bool_3:
                 print(pol_2, "\n")
                 return
@@ -116,6 +141,7 @@ def store_option_6():
             new_json = data_csv.pop("stock")
             data_csv["id"] = int(a)
             data_csv["number"] = int(quantity)
+            data_csv["address"] = new_dic
             save_store_csv(data_csv)
             print(text_num)
             new_data = load_products()
@@ -126,6 +152,7 @@ def store_option_6():
                 return
             else:
                 new_data[str(a)]["stock"] = new_json
+                new_data[str(a)]["address"] = new_dic
                 save_products(new_data)
                 print("\n")
                 return
@@ -143,19 +170,23 @@ def store_option_7():
     try:
         with open("store.csv", "r", newline="", encoding="utf-8-sig") as f:
             memory = list(csv.DictReader(f))
-            with open("store.csv", "w", newline="", encoding="utf-8-sig") as new_file:
-                wri = csv.DictWriter(new_file,fieldnames=["name","price","id","number"])
-                wri.writeheader()
-                for row in memory:
-                    if row["name"] != name_new:
-                        wri.writerow(row)
-                with open("store.csv", "r", newline="", encoding="utf-8-sig") as file:
-                    memory_2 = csv.DictReader(file)
-                for new in memory_2:
-                    if new["name"] == name_new:
-                        print("حذف نشد.")
-                        return
-                print(f" ردیف با نام {name_new} حذف شد. ")
+            for row_new in memory:
+                if row_new["name"] == name_new:
+                    with open("store.csv", "w", newline="", encoding="utf-8-sig") as new_file:
+                        wri = csv.DictWriter(new_file,fieldnames=["name","price","id","number","address"])
+                        wri.writeheader()
+                    for row in memory:
+                        if row["name"] != name_new:
+                            wri.writerow(row)
+                    with open("store.csv", "r", newline="", encoding="utf-8-sig") as file:
+                        memory_2 = list(csv.DictReader(file))
+                    for new in memory_2:
+                        if new["name"] == name_new:
+                            print("حذف نشد.")
+                            return
+                    print(f" ردیف با نام {name_new} حذف شد. ")
+                    return
+            print("نام کالا پیدا نشد.")
     except FileNotFoundError:
         print("هنوز کالای خرید نکردید.")
     except KeyError as e:
@@ -199,71 +230,74 @@ def store_option_10():
     else:
         print(f" لیست خریداری شده: {json_pc_2}", "\n")
 def store_option_11():
-    print("برای خروج 0 وارد کنید.","\n :ما در سایت ",
-          "https://jsonplaceholder.typicode.com/posts","\n "
-           "اطلاعت شما را پیدا می کنیم.")
-    uses_new = input("کاربر شماره چند هستید: ").strip()
-    if uses_new == "0":
+    store_option_2()
+    if not load_products():
+        print("سبد خرید خالی است.")
         return
-    id_user = input("ایدی شما چند است: ").strip()
-    d = Internet("https://jsonplaceholder.typicode.com/posts",uses_new,id_user,"","")
-    bool_1, str_1 = d.check_user(uses_new)
-    if not bool_1:
-        print(str_1,"\n")
+    print("برای خروج 0 وارد کنید.")
+    name = input("نام کالا: ").strip()
+    if name == "0":
         return
-    bool_2, str_2 = d.check_id(id_user)
-    if not bool_2:
-        print(str_2)
+    ok_2,name_new = check_name(name)
+    if not ok_2:
+        print(name_new,"\n")
         return
-    bool_3, str_3 = d.search_internet()
-    if not bool_3:
-        print(str_3)
-        return
-    print(str_3 , "\n")
+    data = load_products()
+    for row,json_data in data.items():
+        if name_new == json_data["name"]:
+            d = Data(json_data.get("address"))
+            ok, masse = d.review()
+            if not ok:
+                print(masse,"\n")
+                return
+            bool_1, masse_2 = d.photo(f"new_{row}.{masse}",name_new,json_data["price"],json_data["stock"])
+            if not bool_1:
+                print(masse_2,"\n")
+                return
+            page = Path("card.html")
+            page.write_text(masse_2,encoding="utf-8")
+            webbrowser.open(page.resolve().as_uri())
+            return
+    print("نام پیدا نشد.","\n")
+    return
 
 def store_option_12():
     print("برای خروج 0 وارد کنید.")
-    user_name = input("کاربر شماره چند هستید: ").strip()
-    if user_name == "0":
-        return
-    d = Internet("https://jsonplaceholder.typicode.com/posts","","","","")
-    bool_1, str_1 = d.check_user(user_name)
-    if not str_1 == "":
-        print(str_1, "\n")
-        return
-    title_1 = input("متن اول نام مشخصات را وارد کنید: ")
-    bool_2, str_2 = d.chock_title(title_1)
-    if not bool_2:
-        print(str_2, "\n")
-        return
-    print(str_2, "\n")
-    body_1 = input("متن دوم توضیح خود را وارد کنید: ")
-    bool_3, str_3 = d.chock_body(body_1)
-    if not bool_3:
-        print(str_3, "\n")
-        return
-    print(str_3, "\n")
-    bool_data, key = d.create_post(title_1,body_1,user_name)
-    if not bool_data:
-        print(key, "\n")
-        return
-    print(f" ذخیره شد: {bool_data}", "\n",f"{key}\n")
-
-def store_option_13():
-    print("برای خروج 0 وارد کنید.")
-    data = input("برای نمایش تمام داده ها تایید کنید: ").strip()
+    data = input("آدرس سایت را وارد کنید: ").strip()
     if data == "0":
         return
-    if data == "تایید" or data == "اره":
-        d = Internet("https://jsonplaceholder.typicode.com/posts", "", "", "", "")
-        data_new, address, json_new = d.to_data()
-        if not json_new:
-            print(address, "\n")
-        else:
-            print(json_new, "\n")
-        if not data_new:
-            print(address, "\n")
-        else:
-            print(data_new, "\n")
-        if not address == "[]":
-            print(address, "\n")
+    ok, mass = address_new(data)
+    if not ok:
+        print(mass,"\n")
+        return
+    allowed = {"text/html":"html","application/json":"json","text/plain":"text","image/jpeg": "jpg", "image/png": "png"}
+    try:
+        r = requests.get(url=data, timeout=15)
+        r.raise_for_status()
+        content_type = r.headers.get("Content-Type", "").split(";")[0]
+        pas = allowed.get(content_type)
+        if pas == "html" or pas == "text":
+            Path("pay.html").write_text(r.text,encoding="utf-8")
+            webbrowser.open(Path("pay.html").resolve().as_uri())
+            return
+        if pas == "jpg" or pas == "png":
+           Path(f"num.{pas}").write_bytes(r.content)
+           webbrowser.open(Path(f"unm.{pas}").resolve().as_uri())
+           return
+        if pas == "json":
+            with open("data_new.json","w",encoding="utf-8") as f:
+                json.dump(r.json(),f,ensure_ascii=False,indent=4)
+                webbrowser.open(Path("data_new.json").resolve().as_uri())
+                return
+    except requests.exceptions.HTTPError as e:
+        print(f"خطای:{e.response.status_code}","\n")
+        return
+    except requests.exceptions.Timeout:
+        print("زمان تمام شد.","\n")
+        return
+    except requests.exceptions.ConnectionError:
+        print("اتصال با سرور برقرار نشد.","\n")
+        return
+    except requests.exceptions.RequestException:
+        print("ارتباط ربات به سایت با مشکل روبه رو شد","\n")
+        return

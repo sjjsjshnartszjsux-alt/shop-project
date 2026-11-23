@@ -1,11 +1,11 @@
-# logic.py
+# logic.py-----------
 from storage import load_products
 from validators import check_identifier
 import csv
-def add_product(data, name, price, stock):
+def add_product(data, name, price, stock, address):
     ids = [int(key) for key in data]
     new_id = str(max(ids, default=0) + 1)
-    data[new_id] = {"name":name, "price":int(price), "stock":int(stock)}
+    data[new_id] = {"name":name, "price":int(price), "stock":int(stock),"address":address}
     return data, ""
 
 def find_product(name_csv):

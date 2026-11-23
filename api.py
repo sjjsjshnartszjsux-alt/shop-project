@@ -46,7 +46,7 @@ class Internet:
             rou = requests.get(url=f"{self.address}", timeout=10)
             rou.raise_for_status()
             if file_is_new:
-                with open("data_new.json","a",newline="",encoding="utf-8-sig") as f:
+                with open("data_new.json","a",encoding="utf-8-sig") as f:
                     json.dump(rou.json(),f,ensure_ascii=False,indent=4)
             r = requests.get(url=f"{self.address}/{self.id_user}",params={"userId":self.userId}, timeout=10)
             r.raise_for_status()
@@ -54,7 +54,7 @@ class Internet:
                 return False, "شناسه یا نام معتبر نیست."
             return True, r.json()
         except requests.exceptions.HTTPError as e:
-            return False, f" کد خطا:{e.response}"
+            return False, f" کد خطا:{e.response.status_code}"
         except requests.exceptions.Timeout:
             return False, "زمان تمام شد."
         except requests.exceptions.ConnectionError:
