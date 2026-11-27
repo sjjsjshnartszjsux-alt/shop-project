@@ -1,8 +1,9 @@
 # handlers.py--------------------
-from validators import check_price,check_identifier,check_stock,check_name,address_new
+from validators import check_price,check_identifier,check_stock,check_name
 from storage import load_products,save_products,save_store_csv
 from logic import add_product,delete_product,json_stock,find_product
 from models import Product,Data
+from reports import export_excel,export_json
 from pathlib import Path
 import csv,webbrowser,requests,json
 
@@ -32,14 +33,16 @@ def store_option_1(data):
         new = input("برای گذاشتن عکس برای کالا تایید کنید.").strip()
         if new == "تایید" or new == "اره":
             address = input("ادرس سایت عکس: ").strip()
-            ok_2,mass_2 = address_new(address)
-            if not ok_2:
-                print(mass_2)
-                return
             d = Data(address)
             ok, mass = d.review()
             if not ok:
                 print(mass)
+                return
+            if mass == "html":
+                print("این ادرس وارد شده صفحه است نه عکس.","ذخیره نشد.\t","\n")
+                return
+            if mass == "json" or mass == "txt":
+                print("ادرس عکس نیست ادرس متن است.","\n ذخیره نشد.","\n")
                 return
             data_1, str_1 = add_product(data, name_end, price, stock_commodity_end, address)
             if str_1 == "":
@@ -170,23 +173,22 @@ def store_option_7():
     try:
         with open("store.csv", "r", newline="", encoding="utf-8-sig") as f:
             memory = list(csv.DictReader(f))
-            for row_new in memory:
-                if row_new["name"] == name_new:
-                    with open("store.csv", "w", newline="", encoding="utf-8-sig") as new_file:
-                        wri = csv.DictWriter(new_file,fieldnames=["name","price","id","number","address"])
-                        wri.writeheader()
-                    for row in memory:
-                        if row["name"] != name_new:
-                            wri.writerow(row)
-                    with open("store.csv", "r", newline="", encoding="utf-8-sig") as file:
-                        memory_2 = list(csv.DictReader(file))
-                    for new in memory_2:
-                        if new["name"] == name_new:
-                            print("حذف نشد.")
-                            return
+            with open("store.csv", "w", newline="", encoding="utf-8-sig") as new_file:
+                wri = csv.DictWriter(new_file,fieldnames=["name","price","id","number","address"])
+                wri.writeheader()
+            for row in memory:
+                if row["name"] != name_new:
+                    wri.writerow(row)
+            with open("store.csv", "r", newline="", encoding="utf-8-sig") as file:
+                memory_2 = list(csv.DictReader(file))
+                for new in memory_2:
+                    if new["name"] == name_new:
+                        print("حذف نشد.")
+                        return
                     print(f" ردیف با نام {name_new} حذف شد. ")
                     return
-            print("نام کالا پیدا نشد.")
+                print("نام پیدا نشد.")
+                return
     except FileNotFoundError:
         print("هنوز کالای خرید نکردید.")
     except KeyError as e:
@@ -197,7 +199,7 @@ def store_option_8():
         with open("products.json", "w", encoding="utf-8"):
             print("انبار پاک شد.", "\n")
     else:
-        print("حذف نشد.", "\n")
+        print("پاک نشد.", "\n")
 def store_option_9():
     try:
         with open("store.csv", "r", newline="" ,encoding="utf-8-sig") as f:
@@ -238,12 +240,12 @@ def store_option_11():
     name = input("نام کالا: ").strip()
     if name == "0":
         return
-    ok_2,name_new = check_name(name)
+    ok_2, name_new = check_name(name)
     if not ok_2:
         print(name_new,"\n")
         return
     data = load_products()
-    for row,json_data in data.items():
+    for row, json_data in data.items():
         if name_new == json_data["name"]:
             d = Data(json_data.get("address"))
             ok, masse = d.review()
@@ -266,9 +268,10 @@ def store_option_12():
     data = input("آدرس سایت را وارد کنید: ").strip()
     if data == "0":
         return
-    ok, mass = address_new(data)
+    d = Data(data)
+    ok, massage = d.review()
     if not ok:
-        print(mass,"\n")
+        print(massage)
         return
     allowed = {"text/html":"html","application/json":"json","text/plain":"text","image/jpeg": "jpg", "image/png": "png"}
     try:
@@ -277,14 +280,17 @@ def store_option_12():
         content_type = r.headers.get("Content-Type", "").split(";")[0]
         pas = allowed.get(content_type)
         if pas == "html" or pas == "text":
-            Path("pay.html").write_text(r.text,encoding="utf-8")
-            webbrowser.open(Path("pay.html").resolve().as_uri())
+            Path(f"pay.{massage}").write_text(r.text,encoding="utf-8")
+            webbrowser.open(Path(f"pay.{massage}").resolve().as_uri())
             return
-        if pas == "jpg" or pas == "png":
-           Path(f"num.{pas}").write_bytes(r.content)
-           webbrowser.open(Path(f"unm.{pas}").resolve().as_uri())
-           return
-        if pas == "json":
+        elif pas == "jpg" or pas == "png":
+            folder = Path("images")
+            folder.mkdir(exist_ok=True)
+            path = folder / Path(f"new_photo.{massage}")
+            path.write_bytes(r.content)
+            webbrowser.open(path.resolve().as_uri())
+            return
+        elif pas == "json":
             with open("data_new.json","w",encoding="utf-8") as f:
                 json.dump(r.json(),f,ensure_ascii=False,indent=4)
                 webbrowser.open(Path("data_new.json").resolve().as_uri())
@@ -299,5 +305,29 @@ def store_option_12():
         print("اتصال با سرور برقرار نشد.","\n")
         return
     except requests.exceptions.RequestException:
-        print("ارتباط ربات به سایت با مشکل روبه رو شد","\n")
+        print("ارتباط ربات با سایت با مشکل روبه رو شد.","\n")
         return
+def store_option_13():
+    print("برای خروج 0 وارد کنید.")
+    new = input(" 1: فقط_گزارش خریدها 2:گزارش سبد_کامل = ").strip()
+    if new == "0":
+        return
+    elif new == "1":
+        folder = Path("xlsx_new")
+        folder.mkdir(exist_ok=True)
+        path_1 = folder / Path(f"new_basket.xlsx")
+        ok, massage = export_excel(path_1)
+        if not ok:
+            print(massage)
+            return
+        webbrowser.open(path_1.resolve().as_uri())
+    elif new == "2":
+        folder_2 = Path("basket")
+        folder_2.mkdir(exist_ok=True)
+        path_2 = folder_2 / Path(f"min_new_bas.xlsx")
+        print(path_2 ,"مسیر","\n")
+        ok_1, massage_2 = export_json(path_2)
+        if not ok_1:
+            print(massage_2,"\n")
+            return
+        webbrowser.open(path_2.resolve().as_uri())

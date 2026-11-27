@@ -1,17 +1,4 @@
-# validators.py-------------------
-import requests
-def address_new(new_add):
-    if not new_add:
-        return False, "ادرس وارد نشد."
-    if not new_add.startswith("https:"):
-        return False, "https: شروع ادرس باید"
-    try:
-        r = requests.get(new_add, timeout=15)
-        r.raise_for_status()
-        return True, ""
-    except requests.exceptions.MissingSchema:
-        return False, f"ادرس پیدا نشد."
-
+# validators.py------------------
 def check_price(price):
     if price == "":
         return False, "قیمتی وارد نکردید."
@@ -33,8 +20,6 @@ def check_identifier(id_num):
 def check_stock(stock):
     if stock == "":
         return False, "موجودی کالا وارد نشده است."
-    if len(stock) < 0:
-        return False, "موجودی کالا نباید کمتر از 0 نباشد."
     if not stock.isdigit():
         return False, "موجودی کالا فقط باید عدد باشد."
     return True, int(stock)

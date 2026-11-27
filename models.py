@@ -52,9 +52,15 @@ class Data:
                 return False, "ادرس باید: {.../:https} شروع شود."
             r = requests.get(url=self.address,timeout=15)
             r.raise_for_status()
+            hed = r.headers.get("Content-Type","").split(";")[0]
+            allowed = {"text/html": "html", "application/json": "json", "text/plain": "txt", "image/jpeg": "jpg",
+                       "image/png": "png"}
             if len(r.content) > 5 * 1024 * 1024:
                 return False, "حجم عکس بیشتر از 5 مگابایت است."
-            return True, ""
+            pas = allowed.get(hed)
+            if pas is None:
+                return False, "خطای جستجو"
+            return True, f"{pas}"
         except requests.exceptions.HTTPError as e:
             return False, f" خطا: {e.response.status_code}"
         except requests.exceptions.Timeout:
